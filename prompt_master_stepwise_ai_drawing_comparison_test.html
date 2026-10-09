@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Master: Stepwise AI Drawing & Comparison Test</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f0fdf4;
+            user-select: none;
+        }
+        h1, h2, h3, .font-fun {
+            font-family: 'Fredoka', cursive;
+        }
+        .comic-card {
+            border: 3.5px solid #000;
+            box-shadow: 5px 5px 0px #000;
+            border-radius: 18px;
+        }
+        .comic-btn {
+            border: 3px solid #000;
+            box-shadow: 4px 4px 0px #000;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .comic-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px #000;
+        }
+        .comic-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #000;
+        }
+        .step-badge {
+            border: 2px solid #000;
+        }
+        .robot-head {
+            transform-origin: center bottom;
+        }
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+        .animate-wobble {
+            animation: wobble 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-3 md:p-6 max-w-7xl mx-auto flex flex-col gap-5 text-gray-900">
+
+    <header class="comic-card bg-amber-300 p-4 md:p-5 relative overflow-hidden">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-white p-3 rounded-2xl border-2 border-black text-3xl md:text-4xl">
+                    🤖🎨
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-black tracking-wide">
+                        Prompt Master: Stepwise AI Drawing
+                    </h1>
+                    <p class="text-xs md:text-sm font-bold text-amber-950">
+                        Human minds have common sense — AI robots strictly follow step-by-step literal commands!
+                    </p>
+                </div>
+            </div>
+            
+            <button onclick="resetEverything()" class="comic-btn bg-rose-400 hover:bg-rose-300 text-black font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5">
+                <span>🔄 Reset All Steps</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        <!-- Left Controls: Target Goal & Step-by-Step Inputs (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-4">
+
+            <!-- Mission Target Card -->
+            <div class="comic-card bg-white p-4 flex flex-col gap-3">
+                <div class="flex justify-between items-center border-b-2 border-gray-200 pb-2">
+                    <span class="text-xs font-extrabold text-gray-500 uppercase tracking-wider">🎯 Target Goal:</span>
+                    <span id="target-title" class="text-xs font-extrabold bg-amber-100 text-amber-900 px-2.5 py-1 rounded-full border border-amber-300">
+                        Target Goal: Build a House
+                    </span>
+                </div>
+
+                <!-- Challenge Selector -->
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="switchChallenge('house')" id="tab-house" class="comic-btn p-2 rounded-xl text-xs font-bold bg-amber-300 text-black text-center">
+                        🏠 House
+                    </button>
+                    <button onclick="switchChallenge('snowman')" id="tab-snowman" class="comic-btn p-2 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 text-center">
+                        ☃️ Snowman
+                    </button>
+                    <button onclick="switchChallenge('burger')" id="tab-burger" class="comic-btn p-2 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 text-center">
+                        🍔 Burger
+                    </button>
+                </div>
+
+                <!-- Goal Target Preview Box -->
+                <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-3 text-xs font-bold text-blue-900 flex items-center gap-3">
+                    <div id="target-preview-mini" class="w-16 h-16 bg-white rounded-lg border border-blue-300 flex-shrink-0 flex items-center justify-center p-1">
+                        <!-- Mini SVG Goal -->
+                    </div>
+                    <div>
+                        <strong class="text-sm block font-extrabold text-blue-950">Your Mission:</strong>
+                        <span id="target-desc">Give step-by-step instructions to draw the target house. Each step builds continuously on top of previous shapes!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stepwise Prompt Inputs -->
+            <div class="comic-card bg-white p-4 flex flex-col gap-3">
+                <div class="flex justify-between items-center border-b-2 border-gray-100 pb-2">
+                    <span class="text-xs font-extrabold text-gray-800 uppercase tracking-wide">
+                        ✍️ Enter Step-by-Step Instructions:
+                    </span>
+                    <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        Continuous Canvas
+                    </span>
+                </div>
+
+                <!-- 5 Step Inputs -->
+                <div class="flex flex-col gap-2.5">
+                    <div class="flex items-center gap-2">
+                        <span class="step-badge bg-rose-200 text-rose-950 font-extrabold text-xs px-2 py-1 rounded-lg">Step 1</span>
+                        <input type="text" id="step-1" placeholder="Type step 1 instruction..." class="w-full comic-card p-2 text-xs font-bold bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="step-badge bg-amber-200 text-amber-950 font-extrabold text-xs px-2 py-1 rounded-lg">Step 2</span>
+                        <input type="text" id="step-2" placeholder="Type step 2 instruction..." class="w-full comic-card p-2 text-xs font-bold bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="step-badge bg-emerald-200 text-emerald-950 font-extrabold text-xs px-2 py-1 rounded-lg">Step 3</span>
+                        <input type="text" id="step-3" placeholder="Type step 3 instruction..." class="w-full comic-card p-2 text-xs font-bold bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="step-badge bg-sky-200 text-sky-950 font-extrabold text-xs px-2 py-1 rounded-lg">Step 4</span>
+                        <input type="text" id="step-4" placeholder="Type step 4 instruction..." class="w-full comic-card p-2 text-xs font-bold bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="step-badge bg-purple-200 text-purple-950 font-extrabold text-xs px-2 py-1 rounded-lg">Step 5</span>
+                        <input type="text" id="step-5" placeholder="Type step 5 instruction..." class="w-full comic-card p-2 text-xs font-bold bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <button onclick="runStepwiseSimulation()" class="comic-btn bg-emerald-400 hover:bg-emerald-300 text-black font-extrabold py-3 text-xs md:text-sm rounded-xl flex items-center justify-center gap-1.5">
+                        <span>🚀 Run Steps on AI!</span>
+                    </button>
+                    <button onclick="resetEverything()" class="comic-btn bg-amber-200 hover:bg-amber-300 text-black font-extrabold py-3 text-xs md:text-sm rounded-xl flex items-center justify-center gap-1.5">
+                        <span>🔄 Reset Canvas</span>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Side: AI Execution Stage & Vague vs Specific Comparison (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-4">
+
+            <!-- Active Stepwise AI Robot Canvas -->
+            <div class="comic-card bg-amber-50 p-3.5 flex flex-col items-center justify-between min-h-[340px]">
+                <div class="w-full border-b-2 border-amber-800 pb-2 mb-2 flex items-center justify-between">
+                    <span class="text-xs font-extrabold text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
+                        <span>🤖 Active AI Canvas (Continuous Drawing)</span>
+                    </span>
+                    <span id="step-counter" class="text-[10px] font-extrabold bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full border border-amber-400">
+                        0 Steps Executed
+                    </span>
+                </div>
+
+                <!-- Live SVG Execution Screen -->
+                <div class="w-full flex-1 flex items-center justify-center bg-white rounded-xl border-2 border-amber-300 p-2 relative overflow-hidden min-h-[220px]" id="ai-canvas">
+                    <div class="flex flex-col items-center justify-center text-gray-400 gap-2">
+                        <span class="text-4xl robot-head animate-wobble">🤖</span>
+                        <span class="text-xs font-bold text-center">Type step instructions on the left and click "Run Steps on AI!"</span>
+                    </div>
+                </div>
+
+                <!-- AI Output Caption -->
+                <div id="ai-status-caption" class="mt-2 text-[11px] font-bold text-gray-700 text-center w-full bg-white p-2 rounded-lg border border-amber-200">
+                    AI Robot waiting for your step-by-step instructions...
+                </div>
+            </div>
+
+            <!-- Direct Comparison Panel: Vague Prompt vs Specific Prompt -->
+            <div class="comic-card bg-gradient-to-r from-rose-100 via-purple-100 to-emerald-100 p-4">
+                <h3 class="text-xs font-extrabold text-gray-900 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    <span>⚡ Key Lesson: Vague Prompt vs. Specific Prompt Comparison</span>
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <!-- Vague Prompt Box -->
+                    <div class="bg-rose-50 border-2 border-rose-300 p-3 rounded-xl flex flex-col gap-1.5">
+                        <span class="font-extrabold text-rose-800 flex items-center gap-1">
+                            🔴 Vague Prompt (No Common Sense)
+                        </span>
+                        <p class="font-bold text-rose-950 text-[11px] bg-white p-1.5 rounded border border-rose-200">
+                            "Draw a house" or "Draw a roof"
+                        </p>
+                        <p class="text-[10px] text-rose-800 leading-tight">
+                            ❌ <strong>Why it fails:</strong> AI doesn't know what geometric shapes make a house, what colors to use, or where to put them!
+                        </p>
+                    </div>
+
+                    <!-- Specific Prompt Box -->
+                    <div class="bg-emerald-50 border-2 border-emerald-300 p-3 rounded-xl flex flex-col gap-1.5">
+                        <span class="font-extrabold text-emerald-800 flex items-center gap-1">
+                            🟢 Specific Step-by-Step Prompts
+                        </span>
+                        <p class="font-bold text-emerald-950 text-[11px] bg-white p-1.5 rounded border border-emerald-200">
+                            Step 1: Draw red square in center<br>
+                            Step 2: Draw blue triangle on top of square
+                        </p>
+                        <p class="text-[10px] text-emerald-800 leading-tight">
+                            ✅ <strong>Why it succeeds:</strong> You provide exact shape, color, size, and position logic step-by-step!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Step Execution Console Log -->
+            <div class="comic-card bg-gray-900 text-green-400 p-3.5 font-mono text-xs flex flex-col gap-2">
+                <div class="flex items-center justify-between border-b border-gray-700 pb-1.5 text-gray-400 font-sans text-xs font-bold">
+                    <span class="flex items-center gap-1.5">
+                        <span id="log-dot" class="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span>
+                        AI Technical Step Log:
+                    </span>
+                    <span id="log-status" class="text-[10px] text-gray-400">Ready</span>
+                </div>
+                <div id="ai-log-content" class="space-y-1 max-h-32 overflow-y-auto leading-relaxed text-[11px]">
+                    <p class="text-gray-500">// Ready for continuous step execution...</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        // Web Audio Synthesizer
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                if (type === 'beep') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                } else if (type === 'silly') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.linearRampToValueAtTime(80, now + 0.2);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(320, now);
+                    osc.frequency.exponentialRampToValueAtTime(640, now + 0.25);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                }
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.26);
+            } catch (e) {
+                // Ignore audio errors
+            }
+        }
+
+        let currentChallenge = 'house';
+
+        const challenges = {
+            house: {
+                title: "Target Goal: Draw a House",
+                desc: "Goal: Give step-by-step instructions to draw the target house. Each step builds continuously on top of previous shapes!",
+                svg: `
+                    <svg viewBox="0 0 200 200" class="w-full h-full">
+                        <rect x="50" y="90" width="100" height="80" fill="#ef4444" stroke="#000" stroke-width="2.5" rx="3"/>
+                        <polygon points="50,90 100,30 150,90" fill="#3b82f6" stroke="#000" stroke-width="2.5"/>
+                        <rect x="85" y="130" width="30" height="40" fill="#78350f" stroke="#000" stroke-width="2" rx="2"/>
+                        <circle cx="108" cy="150" r="3" fill="#fef08a"/>
+                    </svg>
+                `
+            },
+            snowman: {
+                title: "Target Goal: Build a Snowman",
+                desc: "Goal: Give step-by-step instructions to draw the snowman (large circle, medium circle on top, hat, nose)!",
+                svg: `
+                    <svg viewBox="0 0 200 200" class="w-full h-full">
+                        <circle cx="100" cy="140" r="40" fill="#e0f2fe" stroke="#000" stroke-width="2.5"/>
+                        <circle cx="100" cy="80" r="28" fill="#e0f2fe" stroke="#000" stroke-width="2.5"/>
+                        <rect x="80" y="30" width="40" height="25" fill="#18181b" stroke="#000" stroke-width="2"/>
+                        <polygon points="100,78 125,82 100,86" fill="#f97316" stroke="#000" stroke-width="1.5"/>
+                    </svg>
+                `
+            },
+            burger: {
+                title: "Target Goal: Build a Burger",
+                desc: "Goal: Give step-by-step instructions to assemble a burger (bottom bun, patty, cheese, top bun)!",
+                svg: `
+                    <svg viewBox="0 0 200 200" class="w-full h-full">
+                        <rect x="45" y="150" width="110" height="18" rx="8" fill="#d97706" stroke="#000" stroke-width="2"/>
+                        <rect x="40" y="130" width="120" height="18" rx="8" fill="#78350f" stroke="#000" stroke-width="2"/>
+                        <polygon points="45,130 155,130 145,142 55,142" fill="#eab308" stroke="#000" stroke-width="1.5"/>
+                        <path d="M 45,125 Q 100,60 155,125 Z" fill="#f59e0b" stroke="#000" stroke-width="2"/>
+                    </svg>
+                `
+            }
+        };
+
+        function switchChallenge(key) {
+            currentChallenge = key;
+            playSound('beep');
+
+            ['house', 'snowman', 'burger'].forEach(k => {
+                const btn = document.getElementById(`tab-${k}`);
+                if (k === key) {
+                    btn.className = "comic-btn p-2 rounded-xl text-xs font-bold bg-amber-300 text-black text-center";
+                } else {
+                    btn.className = "comic-btn p-2 rounded-xl text-xs font-bold bg-gray-100 text-gray-700 text-center";
+                }
+            });
+
+            const data = challenges[key];
+            document.getElementById('target-title').innerText = data.title;
+            document.getElementById('target-desc').innerText = data.desc;
+            document.getElementById('target-preview-mini').innerHTML = data.svg;
+
+            resetEverything();
+        }
+
+        function resetEverything() {
+            playSound('beep');
+
+            // Clear inputs
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`step-${i}`).value = "";
+            }
+
+            // Clear AI canvas screen
+            document.getElementById('ai-canvas').innerHTML = `
+                <div class="flex flex-col items-center justify-center text-gray-400 gap-2">
+                    <span class="text-4xl robot-head animate-wobble">🤖</span>
+                    <span class="text-xs font-bold text-center">Type step instructions on the left and click "Run Steps on AI!"</span>
+                </div>
+            `;
+
+            document.getElementById('step-counter').innerText = "0 Steps Executed";
+            document.getElementById('ai-status-caption').innerText = "AI Robot waiting for your step-by-step instructions...";
+            document.getElementById('ai-status-caption').className = "mt-2 text-[11px] font-bold text-gray-700 text-center w-full bg-white p-2 rounded-lg border border-amber-200";
+            document.getElementById('ai-log-content').innerHTML = `<p class="text-gray-500">// Ready for continuous step execution...</p>`;
+            document.getElementById('log-status').innerText = "Ready";
+            document.getElementById('log-dot').className = "w-2.5 h-2.5 rounded-full bg-green-500 inline-block";
+        }
+
+        function runStepwiseSimulation() {
+            // Collect step values
+            let steps = [];
+            for (let i = 1; i <= 5; i++) {
+                const val = document.getElementById(`step-${i}`).value.trim();
+                if (val) steps.push({ num: i, text: val });
+            }
+
+            if (steps.length === 0) {
+                playSound('silly');
+                document.getElementById('ai-status-caption').innerText = "⚠️ Please type at least Step 1 instruction!";
+                return;
+            }
+
+            playSound('silly');
+
+            let drawnShapesHistory = [];
+            let canvasElementsSVG = "";
+            let logLines = [];
+            let vagueConceptDetected = false;
+            let missingDetailCount = 0;
+
+            logLines.push(`> Starting continuous stepwise parser for ${steps.length} step(s)...`);
+
+            steps.forEach((stepObj) => {
+                const text = stepObj.text.toLowerCase();
+                logLines.push(`<strong class="text-amber-300">> Step ${stepObj.num}: "${stepObj.text}"</strong>`);
+
+                // 1. Check for vague high-level human concepts (e.g., "draw a house", "draw a snowman")
+                const isVagueConcept = /(draw a house|make a house|build a house|draw a snowman|make a snowman|draw a burger|build a burger|draw a door)/.test(text);
+                const containsExplicitShape = /(square|rectangle|box|triangle|roof|circle|ball|line|hat|nose|patty|bun|dot|polygon)/.test(text);
+
+                if (isVagueConcept && !containsExplicitShape) {
+                    vagueConceptDetected = true;
+                    logLines.push(`<span class="text-rose-400">❌ AI Error: Vague human concept detected!</span>`);
+                    logLines.push(`<span class="text-rose-300">🤖 Log: AI lacks common sense and doesn't know what geometric shapes make a "${stepObj.text}" unless you specify shapes like square, triangle, circle!</span>`);
+
+                    // Render confused literal question box on canvas
+                    const qX = 20 + (stepObj.num * 30);
+                    canvasElementsSVG += `
+                        <g transform="translate(${qX}, 20)">
+                            <rect width="32" height="32" fill="#fecdd3" stroke="#e11d48" stroke-width="2" rx="4"/>
+                            <text x="16" y="22" font-family="Fredoka" font-size="18" fill="#e11d48" text-anchor="middle">?</text>
+                        </g>
+                    `;
+                    return;
+                }
+
+                // 2. Identify exact geometric shape
+                let shapeType = "square";
+                if (text.includes("triangle") || text.includes("roof")) shapeType = "triangle";
+                else if (text.includes("circle") || text.includes("ball") || text.includes("dot")) shapeType = "circle";
+                else if (text.includes("line")) shapeType = "line";
+                else if (text.includes("rectangle") || text.includes("door") || text.includes("patty") || text.includes("bun") || text.includes("hat")) shapeType = "rectangle";
+                else if (text.includes("square") || text.includes("box")) shapeType = "square";
+                else {
+                    missingDetailCount++;
+                    logLines.push(`<span class="text-amber-400">⚠️ No shape specified. Defaulted shape to square.</span>`);
+                }
+
+                // 3. Identify exact color
+                let color = "#9ca3af"; // Default gray
+                if (text.includes("red")) color = "#ef4444";
+                else if (text.includes("blue")) color = "#3b82f6";
+                else if (text.includes("green")) color = "#22c55e";
+                else if (text.includes("yellow")) color = "#eab308";
+                else if (text.includes("brown")) color = "#78350f";
+                else if (text.includes("black")) color = "#18181b";
+                else if (text.includes("orange")) color = "#f97316";
+                else if (text.includes("white")) color = "#e0f2fe";
+                else if (text.includes("purple")) color = "#a855f7";
+                else if (text.includes("pink")) color = "#ec4899";
+                else {
+                    missingDetailCount++;
+                    logLines.push(`<span class="text-amber-400">⚠️ Color missing -> AI defaulted literally to Gray (#9ca3af).</span>`);
+                }
+
+                // 4. Determine Dimensions
+                let w = 50, h = 50, r = 25;
+                if (text.includes("big") || text.includes("large") || text.includes("huge")) { w = 90; h = 70; r = 40; }
+                else if (text.includes("small") || text.includes("tiny")) { w = 25; h = 25; r = 12; }
+                else if (text.includes("medium")) { w = 60; h = 50; r = 30; }
+
+                // 5. Determine Position with CONTINUITY from history
+                let x = 15 + (stepObj.num * 18);
+                let y = 15;
+                let positionFound = false;
+
+                // Check relative positioning commands to previously drawn shapes
+                if ((text.includes("on top") || text.includes("above")) && drawnShapesHistory.length > 0) {
+                    const prev = drawnShapesHistory[drawnShapesHistory.length - 1];
+                    x = prev.x + (prev.w / 2) - (w / 2);
+                    y = prev.y - h;
+                    positionFound = true;
+                    logLines.push(`> Positioned directly above Step ${prev.stepNum} shape at (${Math.round(x)}, ${Math.round(y)}).`);
+                } else if ((text.includes("bottom") || text.includes("below") || text.includes("under") || text.includes("inside")) && drawnShapesHistory.length > 0) {
+                    const prev = drawnShapesHistory[drawnShapesHistory.length - 1];
+                    x = prev.x + (prev.w / 2) - (w / 2);
+                    y = prev.y + prev.h - h;
+                    positionFound = true;
+                    logLines.push(`> Positioned at bottom/inside Step ${prev.stepNum} shape.`);
+                } else if (text.includes("middle") || text.includes("center")) {
+                    x = 100 - (w / 2);
+                    y = 100 - (h / 2);
+                    positionFound = true;
+                } else if (text.includes("top")) {
+                    x = 100 - (w / 2);
+                    y = 25;
+                    positionFound = true;
+                } else if (text.includes("bottom")) {
+                    x = 100 - (w / 2);
+                    y = 125;
+                    positionFound = true;
+                }
+
+                if (!positionFound) {
+                    missingDetailCount++;
+                    logLines.push(`<span class="text-amber-400">⚠️ Position missing -> Placed at default corner (${x}, ${y}).</span>`);
+                }
+
+                // Save shape into history for step-by-step continuity
+                drawnShapesHistory.push({
+                    stepNum: stepObj.num,
+                    type: shapeType,
+                    x: x, y: y, w: w, h: h,
+                    color: color
+                });
+
+                // Render SVG shape
+                if (shapeType === "line") {
+                    canvasElementsSVG += `<line x1="20" y1="${30 + stepObj.num * 25}" x2="180" y2="${30 + stepObj.num * 25}" stroke="${color}" stroke-width="4" stroke-linecap="round"/>`;
+                } else if (shapeType === "triangle") {
+                    canvasElementsSVG += `<polygon points="${x},${y + h} ${x + w/2},${y} ${x + w},${y + h}" fill="${color}" stroke="#000" stroke-width="2.5"/>`;
+                } else if (shapeType === "circle") {
+                    canvasElementsSVG += `<circle cx="${x + r}" cy="${y + r}" r="${r}" fill="${color}" stroke="#000" stroke-width="2.5"/>`;
+                } else { // rectangle or square
+                    canvasElementsSVG += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${color}" stroke="#000" stroke-width="2.5" rx="3"/>`;
+                }
+            });
+
+            // Update SVG Canvas Screen
+            const completeCanvasSVG = `
+                <svg viewBox="0 0 200 200" class="w-full h-full max-h-[200px]">
+                    ${canvasElementsSVG}
+                </svg>
+            `;
+
+            document.getElementById('ai-canvas').innerHTML = completeCanvasSVG;
+            document.getElementById('step-counter').innerText = `${steps.length} Step(s) Executed`;
+            document.getElementById('ai-log-content').innerHTML = logLines.map(l => `<p>${l}</p>`).join('');
+            document.getElementById('log-status').innerText = "Execution Finished";
+
+            // Status Caption Feedback
+            if (vagueConceptDetected) {
+                document.getElementById('ai-status-caption').innerText = "❓ AI Error! Commands like 'house' fail because AI lacks human common sense.";
+                document.getElementById('ai-status-caption').className = "mt-2 text-[11px] font-extrabold text-rose-800 text-center w-full bg-rose-100 p-2 rounded-lg border border-rose-300";
+            } else if (missingDetailCount === 0 && steps.length >= 2) {
+                playSound('success');
+                document.getElementById('ai-status-caption').innerText = "🎉 Success! Specific stepwise instructions guided the AI continuously!";
+                document.getElementById('ai-status-caption').className = "mt-2 text-[11px] font-extrabold text-emerald-800 text-center w-full bg-emerald-100 p-2 rounded-lg border border-emerald-300";
+            } else {
+                document.getElementById('ai-status-caption').innerText = "🤪 AI Misinterpretation! Missing color, position, or size caused literal guessing.";
+                document.getElementById('ai-status-caption').className = "mt-2 text-[11px] font-extrabold text-amber-900 text-center w-full bg-amber-100 p-2 rounded-lg border border-amber-300";
+            }
+        }
+
+        // Initialize default view on load
+        window.onload = function() {
+            switchChallenge('house');
+        };
+    </script>
+</body>
+</html>
